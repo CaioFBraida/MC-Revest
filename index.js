@@ -1,7 +1,11 @@
 import express, { request, response } from 'express';
-
+import admin from 'firebase-admin';
 const app = express();
 
+
+admin.initializeApp({
+    credential: admin.credential.cert("serviceAccountKey.json")
+});
 
 // GET -> recuperar
 // POST -> criar
@@ -11,9 +15,17 @@ const app = express();
 
 app.get('/produtos', (request, response) => {
     console.log('GET produtos');
-    response.json([{id:1,
-        produto: "macacão azul"
-    }])
+
+    admin.firestore()
+        .collection('produtos')
+        .get()
+        .then(snapshot => {
+            const produtos = snapshot.docs.map(doc => ({
+                ...doc.data(),
+                uid: doc.id
+            }))
+            response.json(produtos)
+        });
 })
 
 
