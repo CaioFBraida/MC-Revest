@@ -1,5 +1,6 @@
-import express, { request, response } from 'express';
+import express, { request, response, json } from 'express';
 import admin from 'firebase-admin';
+import { produtosRouter } from './produtos/routes.js';
 const app = express();
 
 
@@ -12,21 +13,16 @@ admin.initializeApp({
 // PUT -> atualizar
 // DELETE -> deletar
 
-
-app.get('/produtos', (request, response) => {
-    console.log('GET produtos');
-
-    admin.firestore()
-        .collection('produtos')
-        .get()
-        .then(snapshot => {
-            const produtos = snapshot.docs.map(doc => ({
-                ...doc.data(),
-                uid: doc.id
-            }))
-            response.json(produtos)
-        });
+app.use(json());
+app.use((request, response, next) => {
+  // TODO: allow only secure origins
+  response.header("Access-Control-Allow-Origin", "*");
+  response.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PATCH,DELETE");
+  response.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  next();
 })
+
+app.use('/produtos', produtosRouter)
 
 
 app.listen(3000, () => console.log('API rest iniciada em http://localhost:3000'))
